@@ -7,6 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 HOURS_PER_DAY = 24
 HISTORICAL_YEARS = (2023, 2024)
 DEFAULT_VARIANCE_THRESHOLD = 0.95
+# Fracción de la varianza retenida que entra al presupuesto de a pares.
+PAIRWISE_VARIANCE_THRESHOLD = 0.90
 
 # El pronóstico empieza el lunes 6 de enero de 2025.
 # Cada hora se compara con el mismo día de la semana:
@@ -174,3 +176,147 @@ explained_p = float(np.sum(sigma_p[:r_p] ** 2) / np.sum(sigma_p**2))
 explained_d = float(np.sum(sigma_d[:r_d] ** 2) / np.sum(sigma_d**2))
 if explained_p < DEFAULT_VARIANCE_THRESHOLD or explained_d < DEFAULT_VARIANCE_THRESHOLD:
     raise ValueError(f"Varianza retenida: viento {explained_p}, demanda {explained_d}")
+
+########################################################
+# Calculo del soporte de PUS en coordenadas PCA usando quantiles hisotoricos
+########################################################
+
+z_dw_p = np.quantile(scores_p, 0.10, axis=0)  # (5,)
+z_up_p = np.quantile(scores_p, 0.90, axis=0)  # (5,)
+z_dw_d = np.quantile(scores_d, 0.10, axis=0)  # (11,)
+z_up_d = np.quantile(scores_d, 0.90, axis=0)  # (11,)
+
+# centros del uncertainty set
+c_p = (z_up_p + z_dw_p) / 2  # (5,)
+c_d = (z_up_d + z_dw_d) / 2  # (11,)
+
+# radios del uncertainty set
+a_p = (z_up_p - z_dw_p) / 2  # (5,)
+a_d = (z_up_d - z_dw_d) / 2  # (11,)
+
+#finalmente el support set es:
+# z = c + a * theta
+
+########################################################
+# Calibración de los budgets
+########################################################
+
+def _componentes_pares(sigma, r, threshold=PAIRWISE_VARIANCE_THRESHOLD):
+    """Menor s, con 2 ≤ s ≤ r, que junta el umbral de la varianza retenida."""
+    if r < 2:
+        return 0
+    retenida = np.cumsum(sigma[:r] ** 2)
+    retenida /= retenida[-1]
+    s = int(np.searchsorted(retenida, threshold, side="left") + 1)
+    return min(max(s, 2), r)
+
+
+def _presupuestos(scores, c, a, s):
+    """θ = (z - c) / a, sin recortar. B suma todas; C el par mayor entre las primeras s."""
+    if np.any(a <= 0):
+        raise ValueError("Hay un componente con ancho nulo")
+    theta = (scores - c) / a
+    magnitud = np.abs(theta)
+    B = magnitud.sum(axis=1)
+    if s < 2:
+        C = np.zeros(magnitud.shape[0])
+    else:
+        dos_mayores = np.partition(magnitud[:, :s], -2, axis=1)[:, -2:]
+        C = dos_mayores.sum(axis=1)
+    Phi = float(np.quantile(B, 0.90))
+    Psi = float(np.quantile(C, 0.90))
+    return theta, B, C, Phi, Psi
+
+
+s_p = _componentes_pares(sigma_p, r_p)
+s_d = _componentes_pares(sigma_d, r_d)
+theta_p, B_p, C_p, Phi_p, Psi_p = _presupuestos(scores_p, c_p, a_p, s_p)
+theta_d, B_d, C_d, Phi_d, Psi_d = _presupuestos(scores_d, c_d, a_d, s_d)
+
+########################################################
+# Graficos de los support sets
+########################################################
+
+import matplotlib.pyplot as plt
+
+def _soporte_mw(L, c, a, b, hat):
+    """Imagen de la caja z = c + a⊙θ, θ∈[-1, 1]^r, en MW: hat + b + L z.
+
+    El ancho de la hora i es sum_j |L_ij| a_j.
+    """
+    centro = hat + b + L @ c
+    radio = np.abs(L) @ a
+    return centro - radio, centro, centro + radio
+
+
+# El soporte del error no depende del día. Se ancla al pronóstico medio
+# para ver el conjunto como potencia y demanda, en MW.
+hat_p_medio = hat_p.mean(axis=1)
+hat_d_medio = hat_d_days.mean(axis=1)
+lo_p, centro_p, hi_p = _soporte_mw(L_p, c_p, a_p, b_p, hat_p_medio)
+lo_d, centro_d, hi_d = _soporte_mw(L_d, c_d, a_d, b_d, hat_d_medio)
+
+horas = np.arange(1, HOURS_PER_DAY + 1)
+fig, axes = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
+paneles = (
+    (
+        axes[0],
+        "Viento AB",
+        lo_p[:HOURS_PER_DAY],
+        centro_p[:HOURS_PER_DAY],
+        hi_p[:HOURS_PER_DAY],
+        hat_p_medio[:HOURS_PER_DAY],
+    ),
+    (
+        axes[1],
+        "Viento KA",
+        lo_p[HOURS_PER_DAY:],
+        centro_p[HOURS_PER_DAY:],
+        hi_p[HOURS_PER_DAY:],
+        hat_p_medio[HOURS_PER_DAY:],
+    ),
+    (axes[2], "Demanda", lo_d, centro_d, hi_d, hat_d_medio),
+)
+for ax, titulo, lo, centro, hi, pronostico in paneles:
+    ax.fill_between(horas, lo, hi, alpha=0.3, label="soporte")
+    ax.plot(horas, centro, label="centro")
+    ax.plot(horas, pronostico, linestyle="--", label="pronóstico medio")
+    ax.set_ylabel("MW")
+    ax.set_title(titulo)
+    ax.legend()
+axes[-1].set_xlabel("Hora")
+fig.tight_layout()
+
+filas = []
+for grupo, c, a, s, r, phi, psi in (
+    ("viento", c_p, a_p, s_p, r_p, Phi_p, Psi_p),
+    ("demanda", c_d, a_d, s_d, r_d, Phi_d, Psi_d),
+):
+    for componente, (centro, radio) in enumerate(zip(c, a, strict=True), start=1):
+        filas.append(
+            {
+                "grupo": grupo,
+                "componente": componente,
+                "c": centro,
+                "a": radio,
+                "s": s,
+                "r": r,
+                "phi": phi,
+                "psi": psi,
+            }
+        )
+pd.DataFrame(filas).to_csv(Path(__file__).resolve().parent / "pca.csv", index=False)
+
+# Leer los datos
+#parametros = pd.read_csv("pca/pca.csv")
+#viento = parametros[parametros["grupo"] == "viento"]
+#demanda = parametros[parametros["grupo"] == "demanda"]
+
+#c_p = viento["c"].to_numpy()
+#a_p = viento["a"].to_numpy()
+#s_p = int(viento["s"].iloc[0])
+#r_p = int(viento["r"].iloc[0])
+#phi_p = float(viento["phi"].iloc[0])
+#psi_p = float(viento["psi"].iloc[0])
+
+plt.show()
