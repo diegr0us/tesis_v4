@@ -340,6 +340,21 @@ class WindFleet:
         return _as_array([park.n_turbines for park in self.parks], dtype=int)
 
     @property
+    def G_r(self) -> list[int]:
+        """Número de turbinas por parque, |G_w^r|."""
+        return [int(park.n_turbines) for park in self.parks]
+
+    def J_r(self, horizon: int) -> list[tuple[int, int]]:
+        """Turbinas con falla dentro del horizonte: pares (j, w)."""
+        horizon = _positive_int(horizon, "El horizonte")
+        return [
+            (j, w)
+            for w, park in enumerate(self.parks)
+            for j in range(park.n_turbines)
+            if int(park.t_failure[j]) <= horizon
+        ]
+
+    @property
     def components(self) -> np.ndarray:
         return _as_array([park.components for park in self.parks], dtype=int)
 

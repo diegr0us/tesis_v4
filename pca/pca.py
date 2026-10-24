@@ -307,6 +307,28 @@ for grupo, c, a, s, r, phi, psi in (
         )
 pd.DataFrame(filas).to_csv(Path(__file__).resolve().parent / "pca.csv", index=False)
 
+# Exportar la reconstrucción sin modificar soporte, PCA ni calibración histórica.
+# Una fila por día; viento apilado por parque y luego por hora (AB, KA).
+reconstruction = {
+    "version": np.array(1),
+    "hours_per_day": np.array(HOURS_PER_DAY),
+    "dates": forecast_time[::HOURS_PER_DAY].to_numpy(dtype="datetime64[D]"),
+    "wind_parks": np.array(["AB", "KA"]),
+    "wind_L": L_p, "wind_b": b_p,
+    "demand_L": L_d, "demand_b": b_d,
+    "wind_forecast": np.hstack([
+        hat_p_AB.reshape(-1, HOURS_PER_DAY), hat_p_KA.reshape(-1, HOURS_PER_DAY),
+    ]),
+    "demand_forecast": hat_d.reshape(-1, HOURS_PER_DAY),
+}
+for name, c, a, s, r, phi, psi in (
+    ("wind", c_p, a_p, s_p, r_p, Phi_p, Psi_p),
+    ("demand", c_d, a_d, s_d, r_d, Phi_d, Psi_d),
+):
+    for field, value in (("c", c), ("a", a), ("s", s), ("r", r), ("phi", phi), ("psi", psi)):
+        reconstruction[f"{name}_{field}"] = np.asarray(value)
+np.savez_compressed(Path(__file__).resolve().parent / "reconstruction.npz", **reconstruction)
+
 # Leer los datos
 #parametros = pd.read_csv("pca/pca.csv")
 #viento = parametros[parametros["grupo"] == "viento"]

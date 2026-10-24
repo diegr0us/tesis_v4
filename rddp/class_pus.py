@@ -10,6 +10,7 @@ import pandas as pd
 
 _COLUMNS = ("grupo", "componente", "c", "a", "s", "r", "phi", "psi")
 _DEFAULT_CSV = Path(__file__).resolve().parents[1] / "pca" / "pca.csv"
+_DEFAULT_NPZ = Path(__file__).resolve().parents[1] / "pca" / "reconstruction.npz"
 
 
 def _copy_array(value) -> np.ndarray:
@@ -97,11 +98,83 @@ def _group(frame: pd.DataFrame, name: str) -> PUSGroup:
 
 
 @dataclass(frozen=True)
+class PCAReconstruction:
+    """Base y sesgo fijos; pron?sticos diarios en orden parque-hora."""
+
+    L: np.ndarray
+    b: np.ndarray
+    forecast: np.ndarray
+
+    def __post_init__(self) -> None:
+        for name in ("L", "b", "forecast"):
+            value = _copy_array(getattr(self, name))
+            if not np.isfinite(value).all():
+                raise ValueError(f"{name} debe contener valores finitos.")
+            object.__setattr__(self, name, value)
+        if self.L.ndim != 2 or self.forecast.ndim != 2:
+            raise ValueError("L y forecast deben ser matrices.")
+        n, r = self.L.shape
+        if min(n, r, self.forecast.shape[0]) < 1 or self.b.shape != (n,):
+            raise ValueError("Dimensiones inv?lidas de la reconstrucci?n PCA.")
+        if self.forecast.shape[1] != n:
+            raise ValueError("El pron?stico debe tener las mismas coordenadas f?sicas que L.")
+        if not np.allclose(self.L.T @ self.L, np.eye(r), atol=1e-6):
+            raise ValueError("L debe ser una base ortonormal.")
+
+
+@dataclass(frozen=True)
 class PUSParameters:
-    """PUS de viento y de demanda, leídos de ``pca/pca.csv``."""
+    """Soporte hist?rico del CSV y reconstrucci?n opcional exportada por PCA."""
 
     wind: PUSGroup
     demand: PUSGroup
+    wind_reconstruction: PCAReconstruction | None = None
+    demand_reconstruction: PCAReconstruction | None = None
+    dates: np.ndarray | None = None
+    hours_per_day: int = 24
+    wind_parks: tuple[str, ...] = ()
+
+    def validate_reconstruction(self, n_parks: int, hours: int, horizon: int) -> None:
+        wind, demand = self.wind_reconstruction, self.demand_reconstruction
+        if wind is None or demand is None or self.dates is None:
+            raise ValueError("Falta la reconstrucci?n PCA. Usa PUSParameters.from_files().")
+        if self.hours_per_day != hours or len(self.wind_parks) != n_parks:
+            raise ValueError("Los parques/horas del PUS no coinciden con el sistema.")
+        if wind.L.shape != (n_parks * hours, self.wind.r) or demand.L.shape != (hours, self.demand.r):
+            raise ValueError("Dimensiones de las bases incompatibles con el sistema/PUS.")
+        dates = np.asarray(self.dates, dtype="datetime64[D]")
+        if dates.ndim != 1 or len(dates) < horizon or np.isnat(dates).any():
+            raise ValueError("No hay fechas v?lidas suficientes para el horizonte.")
+        if np.any(np.diff(dates) != np.timedelta64(1, "D")):
+            raise ValueError("Las fechas del PUS deben ser d?as consecutivos.")
+        if wind.forecast.shape[0] != len(dates) or demand.forecast.shape[0] != len(dates):
+            raise ValueError("Los grupos deben compartir las fechas del PUS.")
+
+    @classmethod
+    def from_files(cls, csv_path: str | Path | None = None,
+                   reconstruction_path: str | Path = _DEFAULT_NPZ) -> PUSParameters:
+        parameters = cls.from_csv(csv_path)
+        path = Path(reconstruction_path)
+        if not path.is_file():
+            raise FileNotFoundError(f"Falta {path}. Ejecuta pca/pca.py para exportar la reconstrucci?n.")
+        with np.load(path, allow_pickle=False) as data:
+            if int(data["version"]) != 1:
+                raise ValueError("Versi?n de reconstrucci?n no compatible.")
+            reconstructions = {}
+            for name, group in (("wind", parameters.wind), ("demand", parameters.demand)):
+                # Evita mezclar la base de una corrida con el soporte de otra.
+                for field in ("c", "a", "s", "r", "phi", "psi"):
+                    saved = data[f"{name}_{field}"]
+                    current = np.asarray(getattr(group, field))
+                    if saved.shape != current.shape or not np.allclose(saved, current):
+                        raise ValueError("CSV y reconstrucci?n PCA no corresponden a la misma calibraci?n.")
+                reconstructions[f"{name}_reconstruction"] = PCAReconstruction(
+                    L=data[f"{name}_L"], b=data[f"{name}_b"], forecast=data[f"{name}_forecast"])
+            result = cls(wind=parameters.wind, demand=parameters.demand, **reconstructions,
+                         dates=data["dates"].copy(), hours_per_day=int(data["hours_per_day"]),
+                         wind_parks=tuple(data["wind_parks"].tolist()))
+        result.validate_reconstruction(len(result.wind_parks), result.hours_per_day, 1)
+        return result
 
     @classmethod
     def from_csv(cls, path: str | Path | None = None) -> PUSParameters:

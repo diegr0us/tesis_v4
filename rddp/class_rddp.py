@@ -20,21 +20,19 @@ class RDDPConfig:
     piden. ``lp_method = 1`` pide el simplex dual, que devuelve una base y con
     ella el subgradiente del corte. ``nominal_replay`` arma, al cerrar la
     corrida, el despacho del plan final en el centro de cada PUS.
-    ``verbose`` muestra cada corte nuevo (ecuación, etapa y estado visitado)
-    y cada punto superior. ``cuts_in_forward=False`` sigue el esquema de docs:
+    ``verbose`` muestra las cotas y el número de cortes/puntos por iteración.
+    ``cuts_in_forward=False`` sigue el esquema de docs:
     forward explora y backward agrega los cortes; True permite anticiparlos.
 
-    El punto de la cota superior vale el ObjBound del oráculo, así que su
-    holgura (ObjBound − incumbente) se suma etapa por etapa: al estancarse,
-    UB − LB queda acotado por esa suma. ``upper_mip_gap`` es relativo al
+    Los puntos superiores usan ObjBound del oráculo (o el respaldo certificado
+    si es menor). La suma de holguras de los oráculos es un diagnóstico, no
+    un certificado de convergencia por estancamiento. ``upper_mip_gap`` es relativo al
     objetivo completo, que incluye el costo futuro; ``upper_mip_gap_abs`` fija
     la holgura en unidades de costo por etapa y no crece con el horizonte.
-    ``price_cap`` acota los precios del balance y del viento por el costo
-    variable más alto del diésel cuando el diésel siempre tiene margen, y
-    ``pus_bounds`` acota la demanda y la potencia disponible por su rango
-    horario dentro del PUS. Las dos cotas no cambian el óptimo del oráculo y
-    estrechan su relajación bilineal. ``stop_on_stall`` corta la corrida
-    cuando una iteración no agrega cortes ni puntos.
+    ``price_cap`` y ``polish_xi`` son opciones heredadas no utilizadas por
+    esta implementación. Las cotas de la caja PCA se aplican siempre,
+    independientemente de ``pus_bounds``. ``stop_on_stall`` corta la corrida
+    cuando una iteración no agrega cortes ni mejora puntos, sin declararla óptima.
     """
 
     ub_method: str = "bilinear"
@@ -152,8 +150,7 @@ class DayOperation:
     Las potencias están en MW y cada período dura una hora, así que la suma
     horaria es energía en MWh. ``soc`` es la energía al cierre de cada hora.
     ``wind`` es la potencia inyectada por el parque y ``wind_available`` es la
-    potencia por turbina, max(0, u), todavía sin multiplicar por las turbinas
-    disponibles.
+    potencia incierta total del parque, antes de multiplicar por A/G.
     """
 
     wind: np.ndarray
@@ -239,11 +236,10 @@ class UpperDayResult:
 
 @dataclass(frozen=True)
 class RDDPIteration:
-    """Cotas de la etapa 1 al empezar una iteración.
+    """Cotas globales registradas al terminar el backward de una iteración.
 
-    ``oracle_slack`` es la suma de ObjBound − incumbente de los oráculos de la
-    pasada backward anterior: la parte de UB − LB que solo baja ajustando el
-    oráculo.
+    ``oracle_slack`` es la suma diagnóstica de ObjBound − incumbente de los
+    oráculos de esa pasada backward; no reemplaza el gap global.
     """
 
     iteration: int
@@ -260,7 +256,7 @@ class RDDPIteration:
 class RDDPResult:
     """Plan de mantenimiento, cotas y el despacho asociado.
 
-    ``operation`` recorre el horizonte en el centro de cada PUS (η = 0, δ = 0),
+    ``operation`` recorre el horizonte en el centro de cada PUS (theta = 0),
     con el plan final y las cotas de costo futuro de la última iteración.
     ``stalled`` indica que la última iteración no agregó cortes ni puntos.
     """

@@ -37,6 +37,11 @@ class FirstStageProblem:
         self.system = system
         self.config = config
         self.model = model = gp.Model()
+        model.Params.OutputFlag = config.output_flag
+        model.Params.Threads = config.threads
+        model.Params.MIPGap = config.first_stage_mip_gap
+        if config.time_limit is not None:
+            model.Params.TimeLimit = config.time_limit
         self.cuts = []
         # Conjuntos y parámetros de Notation RDDP thesis.md.
         # d = 0,...,D-1 en Python corresponde al día físico d+1 del documento.
@@ -46,14 +51,9 @@ class FirstStageProblem:
         W = wind.n_parks
         D = system.horizon
         Y = wind.maintenance_days
-        G_r = [int(n) for n in wind.n_turbines]
-        J_r = [
-            (j, w)
-            for w in range(W)
-            for j in range(G_r[w])
-            if int(wind.t_failure[w][j]) <= D
-        ]
-        turbines_by_park = [sum(1 for j, ww in J_r if ww == w) for w in range(W)]
+        G_r = wind.G_r
+        J_r = wind.J_r(D)
+        turbines_by_park = [sum(1 for _, ww in J_r if ww == w) for w in range(W)]
         turbine_days = [(j, w, d) for j, w in J_r for d in range(D)]
         start_days = range(D - Y + 1)
         start_keys = [(j, w, d) for j, w in J_r for d in start_days]
@@ -139,7 +139,7 @@ class FirstStageProblem:
 
         # x_1 que recibe Q_2: SOC inicial, luego A_{w,d} por día y parque.
         self.state = [float(soc) for soc in np.atleast_1d(Sin)]
-        self.state += [a_r[w, d] for d in range(D) for w in range(W)]
+        self.state += [A_r[w, d] for d in range(D) for w in range(W)]
         self.future_cost = future_cost = model.addVar(vtype=gp.GRB.CONTINUOUS, name="FutureCost")
 
         model.setObjective(maintenance_cost + future_cost, gp.GRB.MINIMIZE)
@@ -147,9 +147,9 @@ class FirstStageProblem:
 
     def add_cut_lower(self, alpha: float, beta: np.ndarray) -> gp.Constr:
         """Agrega θ >= alpha + beta' x_1 y actualiza el modelo para un corte inferior."""
-        if type != "lower":
-            raise ValueError("type tiene que ser 'lower'.")
         slope = np.asarray(beta, dtype=float).reshape(-1)
+        if not np.isfinite(alpha) or not np.isfinite(slope).all():
+            raise ValueError("El corte debe tener coeficientes finitos.")
         if slope.size != len(self.state):
             raise ValueError(
                 f"El corte tiene {slope.size} pendientes y el estado tiene {len(self.state)}."
@@ -167,6 +167,10 @@ class FirstStageProblem:
         """Actualiza el modelo, con los cortes ya agregados, y lo resuelve."""
         self.model.update()
         self.model.optimize()
+        if self.model.SolCount == 0 or self.model.Status in (
+            gp.GRB.INFEASIBLE, gp.GRB.INF_OR_UNBD, gp.GRB.UNBOUNDED,
+        ):
+            raise RuntimeError(f"Primera etapa sin solución utilizable: {self.model.Status}.")
         return FirstStageSolution(
             v_r=self.v_r,
             m_r=self.m_r,
