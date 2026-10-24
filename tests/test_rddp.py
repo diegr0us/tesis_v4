@@ -34,7 +34,8 @@ class RDDPTests(unittest.TestCase):
                 try:
                     result = solver.solve()
                     self.assertTrue(result.optimal)
-                    self.assertAlmostEqual(result.upper_bound, 49 * days, delta=1e-3)
+                    # p por turbina, A=2: y <= p·A. Peor caso ≈ 3.5 MWh diésel/día × 7.
+                    self.assertAlmostEqual(result.upper_bound, 24.5 * days, delta=1e-3)
                     self.assertLessEqual(result.lower_bound, result.upper_bound + 1e-4)
                     self.assertEqual(len(result.operation), days)
                     self.assertTrue(all(x.n_cuts > 0 for x in result.history))

@@ -22,8 +22,9 @@ ROOT = Path(__file__).resolve().parent
 def dispatch(system, data: pd.DataFrame, factor: float):
     """Reutiliza el LP operativo con el horizonte completo como una sola etapa.
 
-    La entrada eólica ya incluye A/G. No se aplican cortes robustos anteriores
-    a perfiles modificados. El objetivo secundario evita ciclos sin beneficio.
+    La entrada eólica ya es potencia de parque disponible (p·A). No se aplican
+    cortes robustos anteriores a perfiles modificados. El objetivo secundario
+    evita ciclos sin beneficio.
     """
     if not np.isfinite(factor) or factor < 0 or data.empty:
         raise ValueError("Se requiere factor finito no negativo y datos no vacíos.")

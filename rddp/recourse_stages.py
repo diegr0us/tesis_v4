@@ -158,7 +158,7 @@ class RecourseStage_Lower:
 
 
     def add_states_constraint(self, soc_in: np.ndarray, availability, pwind: np.ndarray, demand: np.ndarray) -> None:
-        """Fija el estado entrante y la realización; pwind es potencia total del parque."""
+        """Fija el estado entrante y la realización; pwind es potencia por turbina."""
         model = self.model
         battery = self.battery
         wind = self.wind
@@ -187,13 +187,13 @@ class RecourseStage_Lower:
             ),
             name="soc_day_start",
         )
-        # Restriccion de disponibilidad de turbinas eolicas dependiente de la incertidumbre
+        # Parque disponible = p (por turbina) * A (turbinas disponibles).
 
         if self.wind_limits is not None:
             model.remove(self.wind_limits)
         self.wind_limits = model.addConstrs(
             (
-                self.y_r[w, h] <= pwind[w, h] * availability[w, self.stage] / wind.G_r[w]
+                self.y_r[w, h] <= pwind[w, h] * availability[w, self.stage]
                 for w in range(wind.n_parks)
                     for h in range(H)
             ),
@@ -261,7 +261,7 @@ class RecourseStage_Lower:
             beta[b] = self.soc_in[b].Pi
         for w in range(W):
             beta[B + self.stage * W + w] = sum(
-                self.wind_limits[w, h].Pi * self.pwind[w, h] / self.wind.G_r[w]
+                self.wind_limits[w, h].Pi * self.pwind[w, h]
                 for h in range(self.H)
             )
         for cut, (_, slope) in zip(self.cuts, self.cut_data):
@@ -570,7 +570,7 @@ class RecourseStage_Upper:
             self.demand[h] * self.lambda_balance[h] for h in range(H)
         ) - gp.quicksum(
             self.pwind[w, h] * self.lambda_wind[w, h]
-            * float(availability[w, self.stage] / self.system.wind.G_r[w])
+            * float(availability[w, self.stage])
             for w in range(W) for h in range(H)
         ) + gp.quicksum(
             float(incoming_soc[b]) * self.lambda_soc[b, 0] for b in range(B)

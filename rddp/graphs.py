@@ -27,7 +27,7 @@ def save_profile_plots(
 ) -> list[Path]:
     """Grafica perfiles horarios exportados; permite regenerarlos sin optimizar.
 
-    available_wind_* ya incluye disponibilidad de turbinas (A/G).
+    available_wind_* ya incluye disponibilidad de turbinas (p·A).
     El detalle cubre hasta siete días desde la primera hora con excedente;
     si no hay excedentes, muestra los primeros siete días.
     """
@@ -68,7 +68,7 @@ def save_profile_plots(
             for ax, column, name in zip(axes[1:-1], park_columns, names):
                 index = column.split("_")[-2]
                 used_column = f"wind_{index}_MW"
-                ax.plot(time, view[column], color="tab:blue", label="Viento disponible (incluye A/G)")
+                ax.plot(time, view[column], color="tab:blue", label="Viento disponible (p·A)")
                 if used_column in view:
                     ax.plot(time, view[used_column], color="tab:orange", linestyle="--", label="Viento despachado")
                     ax.fill_between(time, view[used_column].to_numpy(), view[column].to_numpy(),
@@ -233,7 +233,7 @@ def save_results(
                         "wind_MW": op.wind[:, h].sum(), "charge_MW": op.charge[:, h].sum(),
                         "discharge_MW": op.discharge[:, h].sum(), "ens_MW": op.ens[h]}
                     for w, name in enumerate(names):
-                        available = op.wind_available[w, h] * op.availability[w] / system.wind.G_r[w]
+                        available = op.wind_available[w, h] * op.availability[w]
                         row[f"wind_{w + 1}_MW"] = op.wind[w, h]
                         row[f"available_wind_{w + 1}_MW"] = available
                     for b in range(system.battery.n_units):

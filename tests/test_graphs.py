@@ -41,7 +41,7 @@ class GraphTests(unittest.TestCase):
             self.assertEqual(summary['stop_reason'], 'stalled')
             hourly = pd.read_csv(directory / 'nominal_hourly.csv')
             self.assertEqual(len(hourly), 2)
-            self.assertTrue(np.allclose(hourly['available_wind_1_MW'], 1.))
+            self.assertTrue(np.allclose(hourly['available_wind_1_MW'], 2.))
             second = save_results(replace(result, operation=()), system, RDDPConfig(), '2025-01-06', temp)
             self.assertNotEqual(second, directory)
             self.assertFalse((second / 'nominal_hourly.csv').exists())

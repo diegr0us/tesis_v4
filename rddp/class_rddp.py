@@ -150,7 +150,7 @@ class DayOperation:
     Las potencias están en MW y cada período dura una hora, así que la suma
     horaria es energía en MWh. ``soc`` es la energía al cierre de cada hora.
     ``wind`` es la potencia inyectada por el parque y ``wind_available`` es la
-    potencia incierta total del parque, antes de multiplicar por A/G.
+    potencia incierta por turbina; el disponible del parque es p·A.
     """
 
     wind: np.ndarray
