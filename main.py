@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from io import StringIO
 from pathlib import Path
+import sys
+from typing import Iterator
 
 import numpy as np
 
@@ -20,6 +24,36 @@ from rddp.class_system import (
     WindFleet,
     WindPark,
 )
+
+
+class _Tee:
+    """Replica escritura a varios streams (consola + buffer)."""
+
+    def __init__(self, *streams) -> None:
+        self.streams = streams
+
+    def write(self, data: str) -> int:
+        for stream in self.streams:
+            stream.write(data)
+            stream.flush()
+        return len(data)
+
+    def flush(self) -> None:
+        for stream in self.streams:
+            stream.flush()
+
+
+@contextmanager
+def capture_console() -> Iterator[StringIO]:
+    """Muestra stdout/stderr en consola y los acumula para guardar al final."""
+    buffer = StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    sys.stdout = _Tee(old_out, buffer)  # type: ignore[assignment]
+    sys.stderr = _Tee(old_err, buffer)  # type: ignore[assignment]
+    try:
+        yield buffer
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
 
 UB_METHOD = "bilinear"
 # (UB - LB) / max(1, |UB|)
@@ -138,19 +172,23 @@ def initialize_problems() -> tuple[FirstStageProblem, list[RecourseStage_Upper],
 
 
 def main() -> RDDPResult:
-    first_stage, upper_stages, lower_stages = initialize_problems()
-    try:
-        result = RDDP(grid, config, upper_stages[0].pus,
-                      first_stage, upper_stages, lower_stages).solve()
-        print(f"LB={result.lower_bound:.6f} UB={result.upper_bound:.6f} "
-              f"gap={result.relative_gap:.3%} convergencia={result.optimal} "
-              f"estancado={result.stalled}")
-        save_results(result, grid, config, INICIO, output_dir=RESULTS_DIR,
-                     show=SHOW_GRAPHS, park_names=upper_stages[0].pus.wind_parks)
-        return result
-    finally:
-        for problem in [first_stage, *upper_stages, *lower_stages]:
-            problem.model.dispose()
+    with capture_console() as log:
+        first_stage, upper_stages, lower_stages = initialize_problems()
+        try:
+            result = RDDP(grid, config, upper_stages[0].pus,
+                          first_stage, upper_stages, lower_stages).solve()
+            print(f"LB={result.lower_bound:.6f} UB={result.upper_bound:.6f} "
+                  f"gap={result.relative_gap:.3%} convergencia={result.optimal} "
+                  f"estancado={result.stalled}")
+            directory = save_results(
+                result, grid, config, INICIO, output_dir=RESULTS_DIR,
+                show=SHOW_GRAPHS, park_names=upper_stages[0].pus.wind_parks,
+            )
+            (directory / "console.txt").write_text(log.getvalue(), encoding="utf-8")
+            return result
+        finally:
+            for problem in [first_stage, *upper_stages, *lower_stages]:
+                problem.model.dispose()
 
 
 if __name__ == "__main__":
