@@ -11,6 +11,14 @@ def _copy_array(value) -> np.ndarray:
     return np.array(value, dtype=float, copy=True)
 
 
+def announce_solve(model_name: str, output_flag: int, tag: str = "") -> None:
+    """Identifica el modelo en consola, justo antes del log de Gurobi."""
+    if not output_flag:
+        return
+    label = f"{tag} | {model_name}" if tag else model_name
+    print(f"\n>>> Resolviendo {label}", flush=True)
+
+
 @dataclass(frozen=True)
 class RDDPConfig:
     """Tolerancias, límites y método del oráculo de la cota superior.
@@ -21,6 +29,8 @@ class RDDPConfig:
     ella el subgradiente del corte. ``nominal_replay`` arma, al cerrar la
     corrida, el despacho del plan final en el centro de cada PUS.
     ``verbose`` muestra las cotas y el número de cortes/puntos por iteración.
+    ``output_flag=1`` deja el log de Gurobi y antepone una línea con la fase,
+    la iteración y el modelo (primera etapa, upper o lower, y el día).
     ``cuts_in_forward=False`` sigue el esquema de docs:
     forward explora y backward agrega los cortes; True permite anticiparlos.
 

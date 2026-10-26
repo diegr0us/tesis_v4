@@ -1,7 +1,7 @@
 import gurobipy as gp
 import numpy as np
 from rddp.class_system import Microgrid
-from rddp.class_rddp import RDDPConfig
+from rddp.class_rddp import RDDPConfig, announce_solve
 
 class FirstStageSolution:
     def __init__(
@@ -36,7 +36,8 @@ class FirstStageProblem:
     ) -> None:
         self.system = system
         self.config = config
-        self.model = model = gp.Model()
+        self.model = model = gp.Model("primera etapa")
+        self.solve_tag = ""
         model.Params.OutputFlag = config.output_flag
         model.Params.Threads = config.threads
         model.Params.MIPGap = config.first_stage_mip_gap
@@ -165,6 +166,7 @@ class FirstStageProblem:
 
     def solve(self) -> FirstStageSolution:
         """Actualiza el modelo, con los cortes ya agregados, y lo resuelve."""
+        announce_solve(self.model.ModelName, int(self.model.Params.OutputFlag), self.solve_tag)
         self.model.update()
         self.model.optimize()
         if self.model.SolCount == 0 or self.model.Status in (

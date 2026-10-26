@@ -129,6 +129,7 @@ class RDDP:
         soc = self.system.battery.soc_ini.copy()
         operations = []
         for d, realization in enumerate(profiles):
+            self.lower[d].solve_tag = "replay nominal"
             r = self._lower(d, soc, a, realization)
             operations.append(DayOperation(r.y_r, r.y_nr, r.pi_plus, r.pi_minus, r.soc,
                 np.zeros(self.system.hours_per_day), r.demand, r.pwind, a[:, d]))
@@ -145,6 +146,7 @@ class RDDP:
         optimal = stalled = False
         slack = 0.0
         for iteration in range(1, self.config.max_iterations + 1):
+            self.first.solve_tag = f"iter {iteration} · maestro"
             self.first.solve()
             master_bound = float(self.first.model.ObjBound)
             if not np.isfinite(master_bound):
@@ -159,6 +161,9 @@ class RDDP:
                 incoming.append(soc.copy())
                 if d == self.T - 1:
                     break
+                tag = f"iter {iteration} · forward"
+                self.upper[d].solve_tag = tag
+                self.lower[d].solve_tag = tag
                 adversary = self._upper(d, soc, a)
                 dispatch = self._lower(d, soc, a, adversary)
                 if self.config.cuts_in_forward:
@@ -168,6 +173,9 @@ class RDDP:
             # Asegura que el lower predecesor tenga estado incluso con T=1.
             slack = 0.0
             for d in reversed(range(self.T)):
+                tag = f"iter {iteration} · backward"
+                self.upper[d].solve_tag = tag
+                self.lower[d].solve_tag = tag
                 adversary = self._upper(d, incoming[d], a)
                 slack += max(0.0, adversary.bound - adversary.objective)
                 changed |= self._add_point(d, incoming[d], a, adversary.bound)

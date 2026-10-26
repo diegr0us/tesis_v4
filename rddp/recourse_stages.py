@@ -1,7 +1,7 @@
 import gurobipy as gp
 import numpy as np
 from rddp.class_system import Microgrid
-from rddp.class_rddp import RDDPConfig
+from rddp.class_rddp import RDDPConfig, announce_solve
 from rddp.class_pus import PUSParameters
 
 
@@ -77,7 +77,8 @@ class RecourseStage_Lower:
     ) -> None:
         self.system = system
         self.config = config
-        self.model = model = gp.Model()
+        self.model = model = gp.Model(f"lower día {stage + 1}/{system.horizon}")
+        self.solve_tag = ""
         _configure(model, config, stage, system)
         model.Params.Method = config.lp_method
         self.stage = stage
@@ -274,6 +275,7 @@ class RecourseStage_Lower:
         """Actualiza el modelo, con los cortes ya agregados, y lo resuelve."""
         if self.state is None:
             raise ValueError("Primero fija el estado y la realización.")
+        announce_solve(self.model.ModelName, int(self.model.Params.OutputFlag), self.solve_tag)
         self.model.update()
         self.model.optimize()
         if self.model.Status != gp.GRB.OPTIMAL:
@@ -308,7 +310,8 @@ class RecourseStage_Upper:
     ) -> None:
         self.system = system
         self.config = config
-        self.model = model = gp.Model()
+        self.model = model = gp.Model(f"upper día {stage + 1}/{system.horizon}")
+        self.solve_tag = ""
         _configure(model, config, stage, system)
         model.Params.NonConvex = 2
         model.Params.MIPGap = config.upper_mip_gap
@@ -389,8 +392,8 @@ class RecourseStage_Upper:
         self.initial_upper_bound = None
 
         lambda_pmax = model.addVars(G_nr, H, lb=0.0, name="lambda_pnr_max")
-        self.lambda_wind = lambda_wind = model.addVars(W, H, lb=0.0, name="lambda_pw_max_curve")
-        self.lambda_balance = lambda_balance = model.addVars(H, lb=0.0, name="lambda_bal")
+        self.lambda_wind = lambda_wind = model.addVars(W, H, lb=0.0, ub = float(diesel.pmax[0]), name="lambda_pw_max_curve")
+        self.lambda_balance = lambda_balance = model.addVars(H, lb=0.0, ub = float(diesel.pmax[0]), name="lambda_bal")
         self.lambda_soc = lambda_soc = model.addVars(B, H, lb=-gp.GRB.INFINITY, name="lambda_soc")
         lambda_charge = model.addVars(B, H, lb=0.0, name="lambda_battery_ch")
         lambda_discharge = model.addVars(B, H, lb=0.0, name="lambda_battery_dch")
@@ -592,6 +595,7 @@ class RecourseStage_Upper:
             raise ValueError("Primero fija el estado con add_states_constraint.")
         if not self.last_day and not self.hull_restrictions and self.initial_upper_bound is None:
             raise ValueError("Faltan puntos de la envolvente superior de la etapa siguiente.")
+        announce_solve(self.model.ModelName, int(self.model.Params.OutputFlag), self.solve_tag)
         self.model.update()
         self.model.optimize()
         if self.model.SolCount == 0 or self.model.Status in (

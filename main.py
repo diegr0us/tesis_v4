@@ -107,9 +107,9 @@ wind = WindFleet(
             seed=1,
         ),
     ),
-    maintenance_days=1,
-    maintenance_crew=1,
-    max_crews=2,
+    maintenance_days=4,
+    maintenance_crew=3,
+    max_crews=1,
     crew_cost=1000.0,
 )
 
@@ -130,7 +130,7 @@ config = RDDPConfig(
     upper_time_limit=UPPER_TIME_LIMIT,
     upper_mip_gap=UPPER_MIP_GAP,
     verbose=True,
-    output_flag=0,
+    output_flag=1,
 )
 
 

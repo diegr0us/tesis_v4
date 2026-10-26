@@ -211,7 +211,7 @@ def _componentes_pares(sigma, r, threshold=PAIRWISE_VARIANCE_THRESHOLD):
     return min(max(s, 2), r)
 
 
-def _presupuestos(scores, c, a, s):
+def _presupuestos(scores, c, a, s,integer = False):
     """θ = (z - c) / a, sin recortar. B suma todas; C el par mayor entre las primeras s."""
     if np.any(a <= 0):
         raise ValueError("Hay un componente con ancho nulo")
@@ -223,15 +223,24 @@ def _presupuestos(scores, c, a, s):
     else:
         dos_mayores = np.partition(magnitud[:, :s], -2, axis=1)[:, -2:]
         C = dos_mayores.sum(axis=1)
-    Phi = float(np.quantile(B, 0.90))
-    Psi = float(np.quantile(C, 0.90))
+    if integer:
+        Phi = float(np.ceil(np.quantile(B, 0.90)))
+        Psi = float(np.ceil(np.quantile(C, 0.90)))
+    else:
+        Phi = float(np.quantile(B, 0.90))
+        Psi = float(np.quantile(C, 0.90))
     return theta, B, C, Phi, Psi
 
 
 s_p = _componentes_pares(sigma_p, r_p)
 s_d = _componentes_pares(sigma_d, r_d)
-theta_p, B_p, C_p, Phi_p, Psi_p = _presupuestos(scores_p, c_p, a_p, s_p)
-theta_d, B_d, C_d, Phi_d, Psi_d = _presupuestos(scores_d, c_d, a_d, s_d)
+theta_p, B_p, C_p, Phi_p, Psi_p = _presupuestos(scores_p, c_p, a_p, s_p, integer=True)
+theta_d, B_d, C_d, Phi_d, Psi_d = _presupuestos(scores_d, c_d, a_d, s_d, integer=True)
+
+Phi_p = r_p - 1
+Psi_p = 1.5
+Phi_d = r_d - 1
+Psi_d = 1.8
 
 ########################################################
 # Graficos de los support sets
