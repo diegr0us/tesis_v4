@@ -1,0 +1,9 @@
+Set parameter Username
+Set parameter LicenseID to value 2864931
+Academic license - for non-commercial use only - expires 2027-09-17
+Modelos inicializados: 1 primera etapa, 85 upper y 85 lower. No se ha ejecutado la optimización.
+RDDP 1: LB=94660.000000 UB=3628762.973384 gap=97.391% cortes=85 puntos=85
+RDDP 2: LB=3616554.610339 UB=3617448.379912 gap=0.025% cortes=144 puntos=170
+LB=3616554.610339 UB=3617448.379912 gap=0.025% convergencia=True estancado=False
+Resultados: convergencia; LB=3,616,554.61, UB=3,617,448.38, gap=0.025%
+Archivos guardados en: C:\Users\diego_c\GitHub Local\tesis_v4\results\run_20261025_220829_133868

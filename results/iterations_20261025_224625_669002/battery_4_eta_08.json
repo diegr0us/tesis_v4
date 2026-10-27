@@ -1,0 +1,455 @@
+{
+  "case": "battery_4_eta_08",
+  "days": 3,
+  "config": {
+    "ub_method": "bilinear",
+    "relative_gap": 0.001,
+    "absolute_gap": 0.001,
+    "max_iterations": 10,
+    "time_limit": null,
+    "output_flag": 0,
+    "threads": 1,
+    "verbose": true,
+    "nominal_replay": false,
+    "cut_tolerance": 1e-06,
+    "cuts_in_forward": false,
+    "first_stage_mip_gap": 1e-06,
+    "upper_mip_gap": 1e-05,
+    "upper_mip_gap_abs": null,
+    "upper_time_limit": 10.0,
+    "price_cap": true,
+    "pus_bounds": true,
+    "stop_on_stall": true,
+    "polish_xi": true,
+    "lp_method": 1
+  },
+  "overrides": {
+    "battery": {
+      "pch": 40.0,
+      "pdch": 40.0,
+      "soc_max": 160.0,
+      "soc_ini": 80.0,
+      "eta": 0.8
+    }
+  },
+  "diesel": [
+    {
+      "pmax": 100,
+      "pmin": 0,
+      "c_var": 100,
+      "c_on": 0.0,
+      "c_fix": 0.0
+    }
+  ],
+  "battery": [
+    {
+      "pch": 40.0,
+      "pdch": 40.0,
+      "soc_max": 160.0,
+      "soc_min": 0,
+      "eta": 0.8,
+      "soc_ini": 80.0,
+      "soc_final": null
+    }
+  ],
+  "maintenance_turbines": 0,
+  "trace": [
+    {
+      "tag": "iter 1 \u00b7 forward",
+      "day": 1,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        0.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 38368.8273578605
+    },
+    {
+      "tag": "iter 1 \u00b7 forward",
+      "day": 2,
+      "soc_in": [
+        0.0
+      ],
+      "soc_out": [
+        0.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 44985.94578850222
+    },
+    {
+      "tag": "iter 1 \u00b7 backward",
+      "day": 3,
+      "soc_in": [
+        0.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 53197.77933962777
+    },
+    {
+      "tag": "iter 1 \u00b7 backward",
+      "day": 2,
+      "soc_in": [
+        0.0
+      ],
+      "soc_out": [
+        32.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 98183.72512813
+    },
+    {
+      "tag": "iter 1 \u00b7 backward",
+      "day": 1,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        112.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 132952.55248599048
+    },
+    {
+      "tag": "iter 2 \u00b7 forward",
+      "day": 1,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        112.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 132952.55248599048
+    },
+    {
+      "tag": "iter 2 \u00b7 forward",
+      "day": 2,
+      "soc_in": [
+        112.0
+      ],
+      "soc_out": [
+        144.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 84183.72512812998
+    },
+    {
+      "tag": "iter 2 \u00b7 backward",
+      "day": 3,
+      "soc_in": [
+        144.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 38077.77933962778
+    },
+    {
+      "tag": "iter 2 \u00b7 backward",
+      "day": 2,
+      "soc_in": [
+        112.0
+      ],
+      "soc_out": [
+        112.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 85623.72512813
+    },
+    {
+      "tag": "iter 2 \u00b7 backward",
+      "day": 1,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 132952.55248599048
+    },
+    {
+      "tag": "iter 3 \u00b7 forward",
+      "day": 1,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 132952.55248599048
+    },
+    {
+      "tag": "iter 3 \u00b7 forward",
+      "day": 2,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 88183.72512813
+    },
+    {
+      "tag": "iter 3 \u00b7 backward",
+      "day": 3,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 43197.77933962777
+    },
+    {
+      "tag": "iter 3 \u00b7 backward",
+      "day": 2,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 88183.72512813
+    },
+    {
+      "tag": "iter 3 \u00b7 backward",
+      "day": 1,
+      "soc_in": [
+        80.0
+      ],
+      "soc_out": [
+        80.0
+      ],
+      "availability": [
+        [
+          10.0,
+          10.0,
+          10.0
+        ],
+        [
+          10.0,
+          10.0,
+          10.0
+        ]
+      ],
+      "objective": 132952.55248599048
+    }
+  ],
+  "iterations": 3,
+  "optimal": true,
+  "stalled": false,
+  "lower_bound": 132952.5524859905,
+  "upper_bound": 132952.552485994,
+  "relative_gap": 2.626846637770238e-14,
+  "history": [
+    {
+      "iteration": 1,
+      "lower_bound": 0.0,
+      "upper_bound": 136552.55248579412,
+      "relative_gap": 1.0,
+      "n_cuts": 3,
+      "n_points": 3,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 6.832124199718237e-09
+    },
+    {
+      "iteration": 2,
+      "lower_bound": 132952.5524859905,
+      "upper_bound": 134552.86980064437,
+      "relative_gap": 0.011893594815368235,
+      "n_cuts": 5,
+      "n_points": 5,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 0.4442406043963274
+    },
+    {
+      "iteration": 3,
+      "lower_bound": 132952.5524859905,
+      "upper_bound": 132952.552485994,
+      "relative_gap": 2.626846637770238e-14,
+      "n_cuts": 5,
+      "n_points": 7,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 6.679329089820385e-09
+    }
+  ],
+  "availability": [
+    [
+      10.0,
+      10.0,
+      10.0
+    ],
+    [
+      10.0,
+      10.0,
+      10.0
+    ]
+  ],
+  "bounds_checks_passed": true,
+  "seconds": 0.4926315000047907
+}

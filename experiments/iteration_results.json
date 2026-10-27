@@ -1,0 +1,513 @@
+[
+  {
+    "case": "vertimiento",
+    "iterations": 25,
+    "optimal": true,
+    "stalled": false,
+    "relative_gap": 0.0007249674789241621,
+    "lower_bound": 29215.428060813814,
+    "upper_bound": 29236.623662162427,
+    "seconds": 60.334195300005376,
+    "availability": [
+      [
+        16.0,
+        16.0,
+        9.0,
+        7.0,
+        16.0,
+        16.0
+      ],
+      [
+        14.0,
+        12.0,
+        16.0,
+        16.0,
+        6.0,
+        16.0
+      ]
+    ],
+    "history": [
+      {
+        "iteration": 1,
+        "lower_bound": 16480.0,
+        "upper_bound": 36736.842079731796,
+        "relative_gap": 0.551404011149553,
+        "n_cuts": 5,
+        "n_points": 6,
+        "maintenance_cost": 16480.0
+      },
+      {
+        "iteration": 2,
+        "lower_bound": 16620.0,
+        "upper_bound": 35637.698427324765,
+        "relative_gap": 0.5336399169016813,
+        "n_cuts": 9,
+        "n_points": 12,
+        "maintenance_cost": 16620.0
+      },
+      {
+        "iteration": 3,
+        "lower_bound": 16790.0,
+        "upper_bound": 35637.698427324765,
+        "relative_gap": 0.528869687411506,
+        "n_cuts": 13,
+        "n_points": 18,
+        "maintenance_cost": 16790.0
+      },
+      {
+        "iteration": 4,
+        "lower_bound": 17160.0,
+        "upper_bound": 35637.698427324765,
+        "relative_gap": 0.5184874232270067,
+        "n_cuts": 15,
+        "n_points": 24,
+        "maintenance_cost": 17160.0
+      },
+      {
+        "iteration": 5,
+        "lower_bound": 21594.21737272617,
+        "upper_bound": 34059.668982064875,
+        "relative_gap": 0.36598863059716635,
+        "n_cuts": 20,
+        "n_points": 30,
+        "maintenance_cost": 16850.0
+      },
+      {
+        "iteration": 6,
+        "lower_bound": 21843.662629686925,
+        "upper_bound": 30264.034546474104,
+        "relative_gap": 0.2782303167099771,
+        "n_cuts": 25,
+        "n_points": 36,
+        "maintenance_cost": 16800.0
+      },
+      {
+        "iteration": 7,
+        "lower_bound": 24359.76059439387,
+        "upper_bound": 30264.034546474104,
+        "relative_gap": 0.19509209662754992,
+        "n_cuts": 30,
+        "n_points": 42,
+        "maintenance_cost": 16920.0
+      },
+      {
+        "iteration": 8,
+        "lower_bound": 24781.648431356163,
+        "upper_bound": 30264.034546474104,
+        "relative_gap": 0.18115185887390758,
+        "n_cuts": 35,
+        "n_points": 48,
+        "maintenance_cost": 16750.0
+      },
+      {
+        "iteration": 9,
+        "lower_bound": 25191.639005012163,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.1440428679363668,
+        "n_cuts": 40,
+        "n_points": 54,
+        "maintenance_cost": 16700.0
+      },
+      {
+        "iteration": 10,
+        "lower_bound": 26649.829615282633,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.09449672079917984,
+        "n_cuts": 44,
+        "n_points": 60,
+        "maintenance_cost": 16870.0
+      },
+      {
+        "iteration": 11,
+        "lower_bound": 26971.478482378916,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.08356779149225887,
+        "n_cuts": 49,
+        "n_points": 66,
+        "maintenance_cost": 16810.0
+      },
+      {
+        "iteration": 12,
+        "lower_bound": 27242.007594273397,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.07437580034349521,
+        "n_cuts": 54,
+        "n_points": 72,
+        "maintenance_cost": 16820.0
+      },
+      {
+        "iteration": 13,
+        "lower_bound": 28279.163862741734,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.03913548490060768,
+        "n_cuts": 58,
+        "n_points": 78,
+        "maintenance_cost": 16770.0
+      },
+      {
+        "iteration": 14,
+        "lower_bound": 28476.241092120516,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.03243922905077807,
+        "n_cuts": 62,
+        "n_points": 84,
+        "maintenance_cost": 16820.0
+      },
+      {
+        "iteration": 15,
+        "lower_bound": 28836.15412513746,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.02021016656412478,
+        "n_cuts": 66,
+        "n_points": 90,
+        "maintenance_cost": 16800.0
+      },
+      {
+        "iteration": 16,
+        "lower_bound": 28903.439185080548,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.0179239664908323,
+        "n_cuts": 71,
+        "n_points": 96,
+        "maintenance_cost": 16820.0
+      },
+      {
+        "iteration": 17,
+        "lower_bound": 28910.55308775889,
+        "upper_bound": 29430.958702660097,
+        "relative_gap": 0.017682251541950966,
+        "n_cuts": 75,
+        "n_points": 102,
+        "maintenance_cost": 16810.0
+      },
+      {
+        "iteration": 18,
+        "lower_bound": 29036.521018367108,
+        "upper_bound": 29287.51604994577,
+        "relative_gap": 0.008570034794027112,
+        "n_cuts": 78,
+        "n_points": 108,
+        "maintenance_cost": 16740.0
+      },
+      {
+        "iteration": 19,
+        "lower_bound": 29115.860276295825,
+        "upper_bound": 29287.51604994577,
+        "relative_gap": 0.005861056067616331,
+        "n_cuts": 82,
+        "n_points": 114,
+        "maintenance_cost": 16860.0
+      },
+      {
+        "iteration": 20,
+        "lower_bound": 29119.503984647097,
+        "upper_bound": 29282.505569310706,
+        "relative_gap": 0.005566517669664215,
+        "n_cuts": 86,
+        "n_points": 120,
+        "maintenance_cost": 16780.0
+      },
+      {
+        "iteration": 21,
+        "lower_bound": 29169.74898006871,
+        "upper_bound": 29282.505569310706,
+        "relative_gap": 0.0038506468982001624,
+        "n_cuts": 88,
+        "n_points": 126,
+        "maintenance_cost": 16760.0
+      },
+      {
+        "iteration": 22,
+        "lower_bound": 29209.55707692924,
+        "upper_bound": 29282.505569310706,
+        "relative_gap": 0.00249119708041378,
+        "n_cuts": 91,
+        "n_points": 132,
+        "maintenance_cost": 16780.0
+      },
+      {
+        "iteration": 23,
+        "lower_bound": 29211.85343551494,
+        "upper_bound": 29282.505569310706,
+        "relative_gap": 0.0024127762437724538,
+        "n_cuts": 93,
+        "n_points": 138,
+        "maintenance_cost": 16810.0
+      },
+      {
+        "iteration": 24,
+        "lower_bound": 29213.653131041894,
+        "upper_bound": 29282.505569310706,
+        "relative_gap": 0.002351316491884226,
+        "n_cuts": 98,
+        "n_points": 144,
+        "maintenance_cost": 16790.0
+      },
+      {
+        "iteration": 25,
+        "lower_bound": 29215.428060813814,
+        "upper_bound": 29236.623662162427,
+        "relative_gap": 0.0007249674789241621,
+        "n_cuts": 100,
+        "n_points": 150,
+        "maintenance_cost": 16750.0
+      }
+    ],
+    "phi_wind": 0.05,
+    "diesel": [
+      [
+        100.0,
+        100.0
+      ]
+    ]
+  },
+  {
+    "case": "orden_de_merito",
+    "iterations": 17,
+    "optimal": true,
+    "stalled": false,
+    "relative_gap": 0.0003219108348251664,
+    "lower_bound": 18831.61750379111,
+    "upper_bound": 18837.681557587483,
+    "seconds": 114.72302489995491,
+    "availability": [
+      [
+        16.0,
+        16.0,
+        9.0,
+        7.0,
+        16.0,
+        16.0
+      ],
+      [
+        13.0,
+        13.0,
+        16.0,
+        16.0,
+        6.0,
+        16.0
+      ]
+    ],
+    "history": [
+      {
+        "iteration": 1,
+        "lower_bound": 16480.0,
+        "upper_bound": 27668.133671066244,
+        "relative_gap": 0.40436893229145254,
+        "n_cuts": 5,
+        "n_points": 6,
+        "maintenance_cost": 16480.0
+      },
+      {
+        "iteration": 2,
+        "lower_bound": 16580.0,
+        "upper_bound": 24240.076437807234,
+        "relative_gap": 0.31600875754087215,
+        "n_cuts": 9,
+        "n_points": 12,
+        "maintenance_cost": 16580.0
+      },
+      {
+        "iteration": 3,
+        "lower_bound": 16680.0,
+        "upper_bound": 24240.076437807234,
+        "relative_gap": 0.3118833580085493,
+        "n_cuts": 14,
+        "n_points": 18,
+        "maintenance_cost": 16680.0
+      },
+      {
+        "iteration": 4,
+        "lower_bound": 16700.0,
+        "upper_bound": 21377.148732904803,
+        "relative_gap": 0.21879198163155858,
+        "n_cuts": 19,
+        "n_points": 24,
+        "maintenance_cost": 16700.0
+      },
+      {
+        "iteration": 5,
+        "lower_bound": 16760.039164842663,
+        "upper_bound": 20583.949657245943,
+        "relative_gap": 0.18577146544162823,
+        "n_cuts": 24,
+        "n_points": 30,
+        "maintenance_cost": 16740.0
+      },
+      {
+        "iteration": 6,
+        "lower_bound": 16830.0,
+        "upper_bound": 20583.949657245943,
+        "relative_gap": 0.18237266024037718,
+        "n_cuts": 29,
+        "n_points": 36,
+        "maintenance_cost": 16830.0
+      },
+      {
+        "iteration": 7,
+        "lower_bound": 17787.69908720081,
+        "upper_bound": 20583.949657245943,
+        "relative_gap": 0.13584616250073267,
+        "n_cuts": 33,
+        "n_points": 42,
+        "maintenance_cost": 16880.0
+      },
+      {
+        "iteration": 8,
+        "lower_bound": 17947.748041447914,
+        "upper_bound": 19235.538189121777,
+        "relative_gap": 0.06694848540303089,
+        "n_cuts": 38,
+        "n_points": 48,
+        "maintenance_cost": 16720.0
+      },
+      {
+        "iteration": 9,
+        "lower_bound": 18139.746328841276,
+        "upper_bound": 19235.538189121777,
+        "relative_gap": 0.05696704971323342,
+        "n_cuts": 43,
+        "n_points": 54,
+        "maintenance_cost": 16790.0
+      },
+      {
+        "iteration": 10,
+        "lower_bound": 18661.43625088478,
+        "upper_bound": 19235.538189121777,
+        "relative_gap": 0.02984589942805272,
+        "n_cuts": 47,
+        "n_points": 60,
+        "maintenance_cost": 16810.0
+      },
+      {
+        "iteration": 11,
+        "lower_bound": 18672.34371402845,
+        "upper_bound": 19235.538189121777,
+        "relative_gap": 0.02927885196432025,
+        "n_cuts": 52,
+        "n_points": 66,
+        "maintenance_cost": 16760.0
+      },
+      {
+        "iteration": 12,
+        "lower_bound": 18726.72936005348,
+        "upper_bound": 18975.793374240595,
+        "relative_gap": 0.013125354459498738,
+        "n_cuts": 57,
+        "n_points": 72,
+        "maintenance_cost": 16750.0
+      },
+      {
+        "iteration": 13,
+        "lower_bound": 18799.721882314505,
+        "upper_bound": 18975.793374240595,
+        "relative_gap": 0.009278742050654116,
+        "n_cuts": 61,
+        "n_points": 78,
+        "maintenance_cost": 16750.0
+      },
+      {
+        "iteration": 14,
+        "lower_bound": 18801.798201268008,
+        "upper_bound": 18975.793374240595,
+        "relative_gap": 0.009169322701878882,
+        "n_cuts": 66,
+        "n_points": 84,
+        "maintenance_cost": 16770.0
+      },
+      {
+        "iteration": 15,
+        "lower_bound": 18814.151421997354,
+        "upper_bound": 18975.793374240595,
+        "relative_gap": 0.008518323795761163,
+        "n_cuts": 70,
+        "n_points": 90,
+        "maintenance_cost": 16720.0
+      },
+      {
+        "iteration": 16,
+        "lower_bound": 18831.61750379111,
+        "upper_bound": 18890.607573782385,
+        "relative_gap": 0.00312271957166408,
+        "n_cuts": 74,
+        "n_points": 96,
+        "maintenance_cost": 16760.0
+      },
+      {
+        "iteration": 17,
+        "lower_bound": 18831.61750379111,
+        "upper_bound": 18837.681557587483,
+        "relative_gap": 0.0003219108348251664,
+        "n_cuts": 76,
+        "n_points": 100,
+        "maintenance_cost": 16760.0
+      }
+    ],
+    "phi_wind": 0.05,
+    "diesel": [
+      [
+        100.0,
+        80.0
+      ],
+      [
+        2.0,
+        15.0
+      ]
+    ]
+  },
+  {
+    "case": "lineal",
+    "iterations": 2,
+    "optimal": true,
+    "stalled": false,
+    "relative_gap": 0.0009794762458138317,
+    "lower_bound": 242137.97430532394,
+    "upper_bound": 242375.3752279299,
+    "seconds": 1.7040261000511236,
+    "availability": [
+      [
+        16.0,
+        0.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ],
+      [
+        0.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ]
+    ],
+    "history": [
+      {
+        "iteration": 1,
+        "lower_bound": 16480.0,
+        "upper_bound": 253791.6984619299,
+        "relative_gap": 0.9350648579134984,
+        "n_cuts": 6,
+        "n_points": 6,
+        "maintenance_cost": 16480.0
+      },
+      {
+        "iteration": 2,
+        "lower_bound": 242137.97430532394,
+        "upper_bound": 242375.3752279299,
+        "relative_gap": 0.0009794762458138317,
+        "n_cuts": 12,
+        "n_points": 12,
+        "maintenance_cost": 17440.0
+      }
+    ],
+    "phi_wind": 4.0,
+    "diesel": [
+      [
+        100.0,
+        100.0
+      ]
+    ]
+  }
+]

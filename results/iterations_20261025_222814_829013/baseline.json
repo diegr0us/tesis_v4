@@ -1,0 +1,78 @@
+{
+  "case": "baseline",
+  "days": 3,
+  "config": {
+    "ub_method": "bilinear",
+    "relative_gap": 0.001,
+    "absolute_gap": 0.001,
+    "max_iterations": 12,
+    "time_limit": null,
+    "output_flag": 0,
+    "threads": 1,
+    "verbose": true,
+    "nominal_replay": false,
+    "cut_tolerance": 1e-06,
+    "cuts_in_forward": false,
+    "first_stage_mip_gap": 1e-06,
+    "upper_mip_gap": 1e-05,
+    "upper_mip_gap_abs": null,
+    "upper_time_limit": 3.0,
+    "price_cap": true,
+    "pus_bounds": true,
+    "stop_on_stall": true,
+    "polish_xi": true,
+    "lp_method": 1
+  },
+  "diesel": [
+    {
+      "pmax": 100,
+      "pmin": 0,
+      "c_var": 100,
+      "c_on": 0.0,
+      "c_fix": 0.0
+    }
+  ],
+  "battery": [
+    {
+      "pch": 10.0,
+      "pdch": 10.0,
+      "soc_max": 40.0,
+      "soc_min": 0,
+      "eta": 0.95,
+      "soc_ini": 20.0,
+      "soc_final": null
+    }
+  ],
+  "maintenance_turbines": 0,
+  "iterations": 2,
+  "optimal": true,
+  "stalled": false,
+  "lower_bound": 132952.5524860405,
+  "upper_bound": 132953.448398003,
+  "relative_gap": 6.7385387388406265e-06,
+  "history": [
+    {
+      "iteration": 1,
+      "lower_bound": 0.0,
+      "upper_bound": 133157.8968842188,
+      "relative_gap": 1.0,
+      "n_cuts": 3,
+      "n_points": 3,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 0.08124046971352072
+    },
+    {
+      "iteration": 2,
+      "lower_bound": 132952.5524860405,
+      "upper_bound": 132953.448398003,
+      "relative_gap": 6.7385387388406265e-06,
+      "n_cuts": 3,
+      "n_points": 5,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 0.8959119914943585
+    }
+  ],
+  "availability": null,
+  "bounds_checks_passed": true,
+  "seconds": 0.2893019000184722
+}

@@ -1,0 +1,125 @@
+{
+  "case": "cheap_20",
+  "days": 3,
+  "config": {
+    "ub_method": "bilinear",
+    "relative_gap": 0.001,
+    "absolute_gap": 0.001,
+    "max_iterations": 15,
+    "time_limit": null,
+    "output_flag": 0,
+    "threads": 1,
+    "verbose": true,
+    "nominal_replay": false,
+    "cut_tolerance": 1e-06,
+    "cuts_in_forward": false,
+    "first_stage_mip_gap": 1e-06,
+    "upper_mip_gap": 1e-05,
+    "upper_mip_gap_abs": null,
+    "upper_time_limit": 3.0,
+    "price_cap": true,
+    "pus_bounds": true,
+    "stop_on_stall": true,
+    "polish_xi": true,
+    "lp_method": 1
+  },
+  "diesel": [
+    {
+      "pmax": 100.0,
+      "pmin": 0.0,
+      "c_var": 100.0,
+      "c_on": 0.0,
+      "c_fix": 0.0
+    },
+    {
+      "pmax": 20.0,
+      "pmin": 0.0,
+      "c_var": 30.0,
+      "c_on": 0.0,
+      "c_fix": 0.0
+    }
+  ],
+  "battery": [
+    {
+      "pch": 10.0,
+      "pdch": 10.0,
+      "soc_max": 40.0,
+      "soc_min": 0,
+      "eta": 0.95,
+      "soc_ini": 20.0,
+      "soc_final": null
+    }
+  ],
+  "maintenance_turbines": 0,
+  "iterations": 6,
+  "optimal": false,
+  "stalled": true,
+  "lower_bound": 40012.28926369317,
+  "upper_bound": 43089.94834340582,
+  "relative_gap": 0.07142406055317611,
+  "history": [
+    {
+      "iteration": 1,
+      "lower_bound": 0.0,
+      "upper_bound": 43388.336477539066,
+      "relative_gap": 1.0,
+      "n_cuts": 3,
+      "n_points": 3,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 3368.376424434102
+    },
+    {
+      "iteration": 2,
+      "lower_bound": 40012.28925979424,
+      "upper_bound": 43388.336477539066,
+      "relative_gap": 0.07781001743389056,
+      "n_cuts": 4,
+      "n_points": 4,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 3504.0045182499434
+    },
+    {
+      "iteration": 3,
+      "lower_bound": 40012.28926369317,
+      "upper_bound": 43388.336477539066,
+      "relative_gap": 0.0778100173440293,
+      "n_cuts": 4,
+      "n_points": 5,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 3536.5481416331295
+    },
+    {
+      "iteration": 4,
+      "lower_bound": 40012.28926369317,
+      "upper_bound": 43100.76105248544,
+      "relative_gap": 0.07165701285486159,
+      "n_cuts": 4,
+      "n_points": 6,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 3599.5086225368523
+    },
+    {
+      "iteration": 5,
+      "lower_bound": 40012.28926369317,
+      "upper_bound": 43089.94834340582,
+      "relative_gap": 0.07142406055317611,
+      "n_cuts": 4,
+      "n_points": 6,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 3589.1497648827117
+    },
+    {
+      "iteration": 6,
+      "lower_bound": 40012.28926369317,
+      "upper_bound": 43089.94834340582,
+      "relative_gap": 0.07142406055317611,
+      "n_cuts": 4,
+      "n_points": 6,
+      "first_stage_cost": 0.0,
+      "oracle_slack": 3592.0522044743466
+    }
+  ],
+  "availability": null,
+  "bounds_checks_passed": true,
+  "seconds": 90.16101759998128
+}

@@ -130,7 +130,7 @@ config = RDDPConfig(
     upper_time_limit=UPPER_TIME_LIMIT,
     upper_mip_gap=UPPER_MIP_GAP,
     verbose=True,
-    output_flag=1,
+    output_flag=0,
 )
 
 
