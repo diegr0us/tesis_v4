@@ -26,23 +26,35 @@ class GraphTests(unittest.TestCase):
         operation = DayOperation(np.ones((1, 2)), np.full((1, 2), 2.),
             np.zeros((1, 2)), np.zeros((1, 2)), np.full((1, 2), 2.),
             np.zeros(2), np.full(2, 3.), np.full((1, 2), 2.), np.array([1.]))
+        worst = DayOperation(np.full((1, 2), 0.5), np.full((1, 2), 3.),
+            np.zeros((1, 2)), np.zeros((1, 2)), np.full((1, 2), 1.),
+            np.zeros(2), np.full(2, 4.), np.full((1, 2), 1.), np.array([1.]))
         result = RDDPResult(20., 30., 1/3, False, np.array([2., 1.]), 2., plan,
-            (RDDPIteration(1, 20., 30., 1/3, 1, 1),), 1, 1, (operation,), True)
+            (RDDPIteration(1, 20., 30., 1/3, 1, 1),), 1, 1, (operation,), True,
+            worst_case=(worst,))
         with TemporaryDirectory() as temp:
             directory = save_results(result, system, RDDPConfig(), '2025-01-06', temp, park_names=('AB',))
             self.assertTrue((directory / 'maintenance.png').is_file())
             self.assertTrue((directory / 'nominal_soc.png').is_file())
             self.assertTrue((directory / 'nominal_profiles.png').is_file())
             self.assertTrue((directory / 'nominal_profiles_detail.png').is_file())
+            self.assertTrue((directory / 'worst_case_profiles.png').is_file())
+            self.assertTrue((directory / 'worst_case_dispatch.png').is_file())
+            self.assertTrue((directory / 'worst_case_soc.png').is_file())
+            self.assertTrue((directory / 'worst_case_vs_nominal.png').is_file())
             for image in directory.glob('*.png'):
                 self.assertEqual(image.read_bytes()[:8], b'\x89PNG\r\n\x1a\n')
             summary = json.loads((directory / 'summary.json').read_text(encoding='utf-8'))
             self.assertEqual(summary['nominal_diesel_cost'], 28.)
+            self.assertEqual(summary['worst_case_diesel_cost'], 42.)
             self.assertEqual(summary['stop_reason'], 'stalled')
             hourly = pd.read_csv(directory / 'nominal_hourly.csv')
             self.assertEqual(len(hourly), 2)
             self.assertTrue(np.allclose(hourly['available_wind_1_MW'], 2.))
-            second = save_results(replace(result, operation=()), system, RDDPConfig(), '2025-01-06', temp)
+            worst_hourly = pd.read_csv(directory / 'worst_case_hourly.csv')
+            self.assertTrue(np.allclose(worst_hourly['demand_MW'], 4.))
+            self.assertTrue(np.allclose(worst_hourly['available_wind_1_MW'], 1.))
+            second = save_results(replace(result, operation=(), worst_case=()), system, RDDPConfig(), '2025-01-06', temp)
             self.assertNotEqual(second, directory)
             self.assertFalse((second / 'nominal_hourly.csv').exists())
             self.assertTrue((second / 'convergence.png').is_file())

@@ -139,7 +139,9 @@ def initialize_problems() -> tuple[FirstStageProblem, list[RecourseStage_Upper],
     boxes = FailureBox()
     for park in range(wind.n_parks):
         for turbine in range(int(wind.n_turbines[park])):
-            t_dw, t_up = boxes.box(int(wind.components[park]), int(wind.t_0[park][turbine]))
+            t_dw, t_up = boxes.box(
+                int(wind.components[park][turbine]), int(wind.t_0[park][turbine])
+            )
             wind.t_failure[park][turbine] = t_dw
             wind.t_up[park][turbine] = t_up
     wind.assign_alpha_hat(grid.horizon)

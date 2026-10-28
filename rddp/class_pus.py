@@ -16,7 +16,7 @@ _COLUMNS = ("grupo", "componente", "c", "a", "s", "r", "phi", "psi")
 _ROOT = Path(__file__).resolve().parents[1]
 _DEFAULT_CSV = _ROOT / "pca" / "pca.csv"
 _DEFAULT_NPZ = _ROOT / "pca" / "reconstruction.npz"
-_DEFAULT_WIND_FORECAST = _ROOT / "forecast" / "wind_forecast_2025.csv"
+_DEFAULT_WIND_FORECAST = _ROOT / "forecast" / "wind_power_forecast_2025.csv"
 _DEFAULT_DEMAND_FORECAST = _ROOT / "forecast" / "demand_forecast_2025.csv"
 # Orden de parques de la base eólica: horas de AB y después horas de KA.
 _WIND_MEDIAN = {"AB": "wind_ab_median_MW", "KA": "wind_ka_median_MW"}

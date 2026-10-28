@@ -68,7 +68,7 @@ UPPER_MIP_GAP = 0.00001
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 SHOW_GRAPHS = False  # True abre las figuras; los archivos siempre se guardan.
 HOURS_PER_DAY = 24
-N_DAYS = 180
+N_DAYS = 85
 INICIO = "2025-01-06"
 
 diesel = DieselFleet(
@@ -91,20 +91,27 @@ battery = BatteryFleet(
 )
 
 n_turbines = (10, 10)
+# t_0 = 1. Los días de falla no coinciden entre parques.
+# Parque 0: 19, 27, 35, 43, 51 y 37, 40, 45, 48, 50.
+# Parque 1: 24, 32, 39, 46, 52 y 36, 38, 42, 47, 49.
+components_by_park = (
+    np.array([61, 14, 11, 3, 34, 27, 65, 54, 30, 12], dtype=int),
+    np.array([68, 17, 7, 15, 78, 1, 36, 93, 29, 48], dtype=int),
+)
 
 wind = WindFleet(
     parks=(
         WindPark(
             prated=3.5,
             n_turbines=n_turbines[0],
+            components=components_by_park[0],
             t_0=np.ones(n_turbines[0], dtype=int),
-            seed=0,
         ),
         WindPark(
             prated=3.5,
             n_turbines=n_turbines[1],
+            components=components_by_park[1],
             t_0=np.ones(n_turbines[1], dtype=int),
-            seed=1,
         ),
     ),
     maintenance_days=4,
@@ -139,7 +146,9 @@ def initialize_problems() -> tuple[FirstStageProblem, list[RecourseStage_Upper],
     boxes = FailureBox()
     for park in range(wind.n_parks):
         for turbine in range(int(wind.n_turbines[park])):
-            t_dw, t_up = boxes.box(int(wind.components[park]), int(wind.t_0[park][turbine]))
+            t_dw, t_up = boxes.box(
+                int(wind.components[park][turbine]), int(wind.t_0[park][turbine])
+            )
             wind.t_failure[park][turbine] = t_dw
             wind.t_up[park][turbine] = t_up
     wind.assign_alpha_hat(grid.horizon)

@@ -38,6 +38,12 @@ class RDDPTests(unittest.TestCase):
                     self.assertAlmostEqual(result.upper_bound, 24.5 * days, delta=1e-3)
                     self.assertLessEqual(result.lower_bound, result.upper_bound + 1e-4)
                     self.assertEqual(len(result.operation), days)
+                    self.assertEqual(len(result.worst_case), days)
+                    for op in result.worst_case:
+                        self.assertAlmostEqual(float(op.demand.sum()), 10.5, delta=1e-2)
+                        self.assertAlmostEqual(float(op.wind_available.sum()), 3.5, delta=1e-2)
+                    diesel = sum(float(np.sum(op.diesel) * 7) for op in result.worst_case)
+                    self.assertAlmostEqual(diesel, 24.5 * days, delta=1e-2)
                     self.assertTrue(all(x.n_cuts > 0 for x in result.history))
                     self.assertTrue(all(a.lower_bound <= b.lower_bound for a, b in zip(result.history, result.history[1:])))
                     self.assertTrue(all(a.upper_bound >= b.upper_bound for a, b in zip(result.history, result.history[1:])))

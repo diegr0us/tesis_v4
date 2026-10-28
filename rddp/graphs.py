@@ -105,6 +105,117 @@ def save_profile_plots(
             plt.close(fig)
 
 
+def save_operation(
+    operation,
+    system: Microgrid,
+    dates: pd.DatetimeIndex,
+    names: list[str],
+    directory: Path,
+    save,
+    *,
+    prefix: str,
+    label: str,
+    profile_title: str,
+    show: bool,
+) -> tuple[pd.DataFrame, float]:
+    """Exporta CSV y PNG de una trayectoria. Devuelve el horario y el costo diésel."""
+    hours = system.hours_per_day
+    hourly_rows, daily_rows = [], []
+    for d, op in enumerate(operation):
+        daily_cost = float(np.sum(op.diesel * system.diesel.c_var[:, None]))
+        daily_rows.append({"date": dates[d], "diesel_MWh": float(op.diesel.sum()),
+            "wind_MWh": float(op.wind.sum()), "demand_MWh": float(op.demand.sum()),
+            "charge_MWh": float(op.charge.sum()), "discharge_MWh": float(op.discharge.sum()),
+            "diesel_cost": daily_cost})
+        for h in range(hours):
+            row = {"timestamp": dates[d] + pd.Timedelta(hours=h), "day": d + 1, "hour": h,
+                "demand_MW": op.demand[h], "diesel_MW": op.diesel[:, h].sum(),
+                "wind_MW": op.wind[:, h].sum(), "charge_MW": op.charge[:, h].sum(),
+                "discharge_MW": op.discharge[:, h].sum(), "ens_MW": op.ens[h]}
+            for w in range(len(names)):
+                row[f"wind_{w + 1}_MW"] = op.wind[w, h]
+                row[f"available_wind_{w + 1}_MW"] = op.wind_available[w, h] * op.availability[w]
+            for b in range(system.battery.n_units):
+                row[f"soc_{b + 1}_MWh"] = op.soc[b, h]
+            hourly_rows.append(row)
+    hourly, daily = pd.DataFrame(hourly_rows), pd.DataFrame(daily_rows)
+    hourly.to_csv(directory / f"{prefix}_hourly.csv", index=False)
+    daily.to_csv(directory / f"{prefix}_daily.csv", index=False)
+    save_profile_plots(hourly, directory, prefix=prefix, title=profile_title,
+        park_names=tuple(names), show=show)
+
+    fig, ax = plt.subplots(figsize=(13, 5))
+    time = hourly["timestamp"]
+    ax.plot(time, hourly["demand_MW"], color="black", label="Demanda", linewidth=1.2)
+    for column, series_label in (("diesel_MW", "Diésel"), ("wind_MW", "Viento"),
+                                 ("discharge_MW", "Descarga"), ("charge_MW", "Carga")):
+        ax.plot(time, hourly[column], label=series_label, alpha=0.85)
+    note = " (no es el peor caso)" if prefix == "nominal" else ""
+    ax.set(ylabel="Potencia (MW)", xlabel="Fecha", title=f"{label}: despacho horario{note}")
+    ax.grid(alpha=0.25)
+    ax.legend(ncol=5)
+    fig.autofmt_xdate()
+    save(fig, f"{prefix}_dispatch")
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+    ax.plot(dates, daily["diesel_MWh"], label="Diésel")
+    ax.plot(dates, daily["wind_MWh"], label="Viento")
+    ax.plot(dates, daily["demand_MWh"], "k--", label="Demanda")
+    ax.set(ylabel="Energía (MWh)", xlabel="Fecha", title=f"{label}: energía diaria")
+    ax.legend()
+    ax.grid(alpha=0.25)
+    fig.autofmt_xdate()
+    save(fig, f"{prefix}_daily_energy")
+
+    if system.battery.n_units:
+        fig, axes = plt.subplots(system.battery.n_units, 1,
+            figsize=(12, 3 * system.battery.n_units), squeeze=False)
+        for b, ax in enumerate(axes[:, 0]):
+            ax.plot(time, hourly[f"soc_{b + 1}_MWh"], label=f"SOC batería {b + 1}")
+            ax.axhline(system.battery.soc_min[b], linestyle="--", color="gray", label="SOC mínimo")
+            ax.axhline(system.battery.soc_max[b], linestyle="--", color="tab:red", label="SOC máximo")
+            ax.set(ylabel="Energía (MWh)", title=f"{label}: batería {b + 1}")
+            ax.grid(alpha=0.25)
+            ax.legend()
+        fig.autofmt_xdate()
+        save(fig, f"{prefix}_soc")
+    return hourly, float(daily["diesel_cost"].sum())
+
+
+def plot_trajectory_comparison(nominal: pd.DataFrame, worst: pd.DataFrame, save) -> None:
+    """Demanda y viento disponible del centro PCA frente a la realización adversa."""
+    if len(nominal) != len(worst) or not nominal["timestamp"].equals(worst["timestamp"]):
+        raise ValueError("El replay nominal y el peor caso no cubren las mismas horas.")
+    wind_columns = sorted(
+        (c for c in nominal if c.startswith("available_wind_") and c != "available_wind_MW"),
+        key=lambda c: int(c.split("_")[-2]),
+    )
+    worst_columns = sorted(
+        (c for c in worst if c.startswith("available_wind_") and c != "available_wind_MW"),
+        key=lambda c: int(c.split("_")[-2]),
+    )
+    if wind_columns != worst_columns:
+        raise ValueError("Las trayectorias no tienen los mismos parques.")
+    time = nominal["timestamp"]
+    nominal_wind = nominal[wind_columns].sum(axis=1) if wind_columns else nominal["available_wind_MW"]
+    worst_wind = worst[wind_columns].sum(axis=1) if wind_columns else worst["available_wind_MW"]
+    fig, axes = plt.subplots(2, 1, figsize=(13, 7), sharex=True)
+    axes[0].plot(time, nominal["demand_MW"], color="black", linestyle="--", label="Demanda nominal")
+    axes[0].plot(time, worst["demand_MW"], color="tab:red", label="Demanda peor caso")
+    axes[0].set_title("Trayectoria de demanda")
+    axes[1].plot(time, nominal_wind, color="tab:gray", linestyle="--", label="Viento disponible nominal")
+    axes[1].plot(time, worst_wind, color="tab:blue", label="Viento disponible peor caso")
+    axes[1].set_title("Trayectoria de viento disponible (p·A)")
+    axes[1].set_xlabel("Fecha")
+    for ax in axes:
+        ax.set_ylabel("Potencia (MW)")
+        ax.set_ylim(bottom=0)
+        ax.grid(alpha=0.25)
+        ax.legend(loc="upper right")
+    fig.autofmt_xdate()
+    save(fig, "worst_case_vs_nominal")
+
+
 def save_results(
     result: RDDPResult,
     system: Microgrid,
@@ -117,7 +228,8 @@ def save_results(
     """Crea una carpeta única con PNG, CSV y JSON; devuelve su ruta absoluta.
 
     show=True muestra las figuras al terminar (puede bloquear hasta cerrarlas).
-    Los gráficos operativos corresponden solo al replay nominal, no al peor caso.
+    Los gráficos operativos cubren el replay nominal y, si viene en el resultado,
+    la trayectoria del peor caso del mismo plan.
     Cada intervalo operativo se considera de una hora, como en el modelo.
     """
     days, hours = system.horizon, system.hours_per_day
@@ -127,8 +239,9 @@ def save_results(
     dates = pd.date_range(start_date, periods=days, freq="D")
     if result.plan.wind_availability.shape != (len(names), days):
         raise ValueError("La disponibilidad del resultado no coincide con el horizonte.")
-    if result.operation and (len(result.operation) != days or any(op.hours != hours for op in result.operation)):
-        raise ValueError("El replay debe cubrir todos los días y horas del horizonte.")
+    for ops, label in ((result.operation, "replay nominal"), (result.worst_case, "peor caso")):
+        if ops and (len(ops) != days or any(op.hours != hours for op in ops)):
+            raise ValueError(f"El {label} debe cubrir todos los días y horas del horizonte.")
     directory = Path(output_dir).resolve() / datetime.now().strftime("run_%Y%m%d_%H%M%S_%f")
     directory.mkdir(parents=True, exist_ok=False)
     figures = []
@@ -217,74 +330,35 @@ def save_results(
             "oracle_slack": float(result.oracle_slack), "start_date": str(dates[0].date()),
             "end_date": str(dates[-1].date()), "operational_days": days,
             "operation_type": "nominal_replay" if result.operation else "not_available",
+            "has_worst_case_trajectory": bool(result.worst_case),
             "config": asdict(config),
         }
+        nominal_hourly = worst_hourly = None
         if result.operation:
-            hourly_rows, daily_rows = [], []
-            for d, op in enumerate(result.operation):
-                daily_cost = float(np.sum(op.diesel * system.diesel.c_var[:, None]))
-                daily_rows.append({"date": dates[d], "diesel_MWh": float(op.diesel.sum()),
-                    "wind_MWh": float(op.wind.sum()), "demand_MWh": float(op.demand.sum()),
-                    "charge_MWh": float(op.charge.sum()), "discharge_MWh": float(op.discharge.sum()),
-                    "diesel_cost": daily_cost})
-                for h in range(hours):
-                    row = {"timestamp": dates[d] + pd.Timedelta(hours=h), "day": d + 1, "hour": h,
-                        "demand_MW": op.demand[h], "diesel_MW": op.diesel[:, h].sum(),
-                        "wind_MW": op.wind[:, h].sum(), "charge_MW": op.charge[:, h].sum(),
-                        "discharge_MW": op.discharge[:, h].sum(), "ens_MW": op.ens[h]}
-                    for w, name in enumerate(names):
-                        available = op.wind_available[w, h] * op.availability[w]
-                        row[f"wind_{w + 1}_MW"] = op.wind[w, h]
-                        row[f"available_wind_{w + 1}_MW"] = available
-                    for b in range(system.battery.n_units):
-                        row[f"soc_{b + 1}_MWh"] = op.soc[b, h]
-                    hourly_rows.append(row)
-            hourly, daily = pd.DataFrame(hourly_rows), pd.DataFrame(daily_rows)
-            hourly.to_csv(directory / "nominal_hourly.csv", index=False)
-            daily.to_csv(directory / "nominal_daily.csv", index=False)
-            save_profile_plots(hourly, directory, park_names=tuple(names), show=show)
-            summary["nominal_diesel_cost"] = float(daily["diesel_cost"].sum())
-            summary["nominal_total_cost"] = float(result.first_stage_cost + daily["diesel_cost"].sum())
-
-            fig, ax = plt.subplots(figsize=(13, 5))
-            time = hourly["timestamp"]
-            ax.plot(time, hourly["demand_MW"], color="black", label="Demanda", linewidth=1.2)
-            for column, label in (("diesel_MW", "Diésel"), ("wind_MW", "Viento"),
-                                  ("discharge_MW", "Descarga"), ("charge_MW", "Carga")):
-                ax.plot(time, hourly[column], label=label, alpha=0.85)
-            ax.set(ylabel="Potencia (MW)", xlabel="Fecha", title="Replay nominal: despacho horario (no es el peor caso)")
-            ax.grid(alpha=0.25)
-            ax.legend(ncol=5)
-            fig.autofmt_xdate()
-            save(fig, "nominal_dispatch")
-
-            fig, ax = plt.subplots(figsize=(12, 5))
-            ax.plot(dates, daily["diesel_MWh"], label="Diésel")
-            ax.plot(dates, daily["wind_MWh"], label="Viento")
-            ax.plot(dates, daily["demand_MWh"], "k--", label="Demanda")
-            ax.set(ylabel="Energía (MWh)", xlabel="Fecha", title="Replay nominal: energía diaria")
-            ax.legend()
-            ax.grid(alpha=0.25)
-            fig.autofmt_xdate()
-            save(fig, "nominal_daily_energy")
-
-            if system.battery.n_units:
-                fig, axes = plt.subplots(system.battery.n_units, 1, figsize=(12, 3 * system.battery.n_units), squeeze=False)
-                for b, ax in enumerate(axes[:, 0]):
-                    ax.plot(time, hourly[f"soc_{b + 1}_MWh"], label=f"SOC batería {b + 1}")
-                    ax.axhline(system.battery.soc_min[b], linestyle="--", color="gray", label="SOC mínimo")
-                    ax.axhline(system.battery.soc_max[b], linestyle="--", color="tab:red", label="SOC máximo")
-                    ax.set(ylabel="Energía (MWh)", title=f"Replay nominal: batería {b + 1}")
-                    ax.grid(alpha=0.25)
-                    ax.legend()
-                fig.autofmt_xdate()
-                save(fig, "nominal_soc")
+            nominal_hourly, diesel_cost = save_operation(
+                result.operation, system, dates, names, directory, save,
+                prefix="nominal", label="Replay nominal",
+                profile_title="Replay nominal (no es el peor caso)", show=show)
+            summary["nominal_diesel_cost"] = diesel_cost
+            summary["nominal_total_cost"] = float(result.first_stage_cost + diesel_cost)
+        if result.worst_case:
+            worst_hourly, diesel_cost = save_operation(
+                result.worst_case, system, dates, names, directory, save,
+                prefix="worst_case", label="Peor caso",
+                profile_title="Peor caso: realización adversa del plan final", show=show)
+            summary["worst_case_diesel_cost"] = diesel_cost
+            summary["worst_case_total_cost"] = float(result.first_stage_cost + diesel_cost)
+        if nominal_hourly is not None and worst_hourly is not None:
+            plot_trajectory_comparison(nominal_hourly, worst_hourly, save)
 
         with (directory / "summary.json").open("w", encoding="utf-8") as file:
             json.dump(summary, file, ensure_ascii=False, indent=2, allow_nan=False)
         status = "convergencia" if result.optimal else "estancamiento" if result.stalled else "máximo de iteraciones"
+        worst_cost = ""
+        if "worst_case_diesel_cost" in summary:
+            worst_cost = f", diésel peor caso={summary['worst_case_diesel_cost']:,.2f}"
         print(f"Resultados: {status}; LB={result.lower_bound:,.2f}, UB={result.upper_bound:,.2f}, "
-              f"gap={result.relative_gap:.3%}\nArchivos guardados en: {directory}")
+              f"gap={result.relative_gap:.3%}{worst_cost}\nArchivos guardados en: {directory}")
         if show:
             plt.show()
         return directory

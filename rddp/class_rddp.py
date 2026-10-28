@@ -28,6 +28,9 @@ class RDDPConfig:
     piden. ``lp_method = 1`` pide el simplex dual, que devuelve una base y con
     ella el subgradiente del corte. ``nominal_replay`` arma, al cerrar la
     corrida, el despacho del plan final en el centro de cada PUS.
+    ``worst_case_replay`` recorre ese mismo plan día a día: el oráculo
+    superior elige viento y demanda, y el LP inferior despacha esa
+    realización. Usa las cotas finales; no reemplaza el certificado de UB.
     ``verbose`` muestra las cotas y el número de cortes/puntos por iteración.
     ``output_flag=1`` deja el log de Gurobi y antepone una línea con la fase,
     la iteración y el modelo (primera etapa, upper o lower, y el día).
@@ -54,6 +57,7 @@ class RDDPConfig:
     threads: int = 0
     verbose: bool = True
     nominal_replay: bool = True
+    worst_case_replay: bool = True
     cut_tolerance: float = 1e-6
     cuts_in_forward: bool = False
     first_stage_mip_gap: float = 1e-6
@@ -268,6 +272,8 @@ class RDDPResult:
 
     ``operation`` recorre el horizonte en el centro de cada PUS (theta = 0),
     con el plan final y las cotas de costo futuro de la última iteración.
+    ``worst_case`` es la trayectoria adversa de ese plan: en cada día el
+    oráculo superior fija la realización y el LP inferior la despacha.
     ``stalled`` indica que la última iteración no agregó cortes ni puntos.
     """
 
@@ -284,3 +290,4 @@ class RDDPResult:
     operation: tuple[DayOperation, ...] = field(default_factory=tuple)
     stalled: bool = False
     oracle_slack: float = 0.0
+    worst_case: tuple[DayOperation, ...] = field(default_factory=tuple)

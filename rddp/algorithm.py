@@ -136,6 +136,27 @@ class RDDP:
             soc = r.soc[:, -1].copy()
         return tuple(operations)
 
+    def _worst_case(self, a):
+        """Realización adversa y despacho del plan, con las cotas finales.
+
+        Cada día el oráculo elige viento y demanda; el LP inferior despacha
+        esa realización y el SOC de cierre entra al día siguiente. Si el
+        oráculo termina con holgura, la trayectoria usa su incumbente.
+        """
+        soc = self.system.battery.soc_ini.copy()
+        operations = []
+        hours = self.system.hours_per_day
+        for d in range(self.T):
+            self.upper[d].solve_tag = "peor caso"
+            self.lower[d].solve_tag = "peor caso"
+            adversary = self._upper(d, soc, a)
+            dispatch = self._lower(d, soc, a, adversary)
+            operations.append(DayOperation(
+                dispatch.y_r, dispatch.y_nr, dispatch.pi_plus, dispatch.pi_minus, dispatch.soc,
+                np.zeros(hours), dispatch.demand, dispatch.pwind, a[:, d]))
+            soc = dispatch.soc[:, -1].copy()
+        return tuple(operations)
+
     def solve(self) -> RDDPResult:
         if self._solved:
             raise RuntimeError("Crea una instancia nueva para iniciar otra corrida RDDP.")
@@ -202,7 +223,8 @@ class RDDP:
         assert best is not None
         a, cost, plan = best
         operation = self._replay(a) if self.config.nominal_replay else ()
+        worst_case = self._worst_case(a) if self.config.worst_case_replay else ()
         return RDDPResult(lb, ub, history[-1].relative_gap, optimal,
             np.concatenate((self.system.battery.soc_ini, a.T.reshape(-1))), cost, plan,
             tuple(history), sum(map(len, self.cuts)), sum(map(len, self.points)),
-            operation, stalled, slack)
+            operation, stalled, slack, worst_case)

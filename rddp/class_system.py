@@ -176,7 +176,7 @@ def robust_alpha_hat(
 
 @dataclass(frozen=True)
 class WindPark:
-    """Parque eólico. ``alpha_hat`` es propio de cada turbina.
+    """Parque eólico. ``components`` y ``alpha_hat`` son propios de cada turbina.
 
     La fila ``i`` de ``alpha_hat`` es el costo robusto de iniciar el
     mantenimiento de esa turbina en cada día del horizonte. Sale de su box
@@ -185,7 +185,7 @@ class WindPark:
 
     prated: float
     n_turbines: int
-    components: int | None = None
+    components: int | np.ndarray | None = None
     t_0: np.ndarray | None = None
     t_failure: np.ndarray | None = None
     t_up: np.ndarray | None = None
@@ -200,13 +200,9 @@ class WindPark:
             )
         object.__setattr__(self, "n_turbines", n_turbines)
 
-        if self.components is None:
-            component = int(np.random.default_rng(self.seed).integers(1, 101))
-        else:
-            component = int(self.components)
-        if not 1 <= component <= 100:
-            raise ValueError(f"El componente {component} tiene que estar entre 1 y 100.")
-        object.__setattr__(self, "components", component)
+        object.__setattr__(
+            self, "components", _turbine_components(self.components, n_turbines, self.seed)
+        )
 
         if self.t_0 is None:
             raise ValueError("Cada parque necesita t_0: un día de pronóstico por turbina.")
@@ -260,6 +256,25 @@ class WindPark:
     @property
     def park_rated(self) -> float:
         return float(self.n_turbines) * float(self.prated)
+
+
+def _turbine_components(value: Any, n_turbines: int, seed: int) -> np.ndarray:
+    """Un componente 1–100 por turbina. Un escalar se copia a todo el parque."""
+    if value is None:
+        component = int(np.random.default_rng(seed).integers(1, 101))
+        return np.full(n_turbines, component, dtype=int)
+    components = np.asarray(value, dtype=int).reshape(-1)
+    if components.size == 1:
+        components = np.full(n_turbines, int(components[0]), dtype=int)
+    if components.size != n_turbines:
+        raise ValueError(
+            f"components tiene {components.size} valores y el parque tiene {n_turbines} turbinas."
+        )
+    if np.any((components < 1) | (components > 100)):
+        raise ValueError(
+            f"Cada componente tiene que estar entre 1 y 100; se recibió {components.tolist()}."
+        )
+    return components.copy()
 
 
 def _turbine_days(value: Any, n_turbines: int, name: str) -> np.ndarray:
@@ -355,8 +370,8 @@ class WindFleet:
         ]
 
     @property
-    def components(self) -> np.ndarray:
-        return _as_array([park.components for park in self.parks], dtype=int)
+    def components(self) -> tuple[np.ndarray, ...]:
+        return tuple(park.components for park in self.parks)
 
     @property
     def t_0(self) -> tuple[np.ndarray, ...]:
