@@ -22,7 +22,7 @@ ORIGIN_HISTORICAL = {
 }
 
 forecast = pd.read_csv(
-    ROOT / "forecast" / "wind_power_forecast_2025.csv",
+    ROOT / "forecast" / "wind_forecast_2025.csv",
     parse_dates=["source_timestamp"],
 )
 demand_forecast = pd.read_csv(

@@ -68,7 +68,7 @@ UPPER_MIP_GAP = 0.00001
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 SHOW_GRAPHS = False  # True abre las figuras; los archivos siempre se guardan.
 HOURS_PER_DAY = 24
-N_DAYS = 85
+N_DAYS = 180
 INICIO = "2025-01-06"
 
 diesel = DieselFleet(
