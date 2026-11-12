@@ -1,0 +1,1 @@
+Top-level .gitignore that excludes Python bytecode directories and compiled artifacts from version control.

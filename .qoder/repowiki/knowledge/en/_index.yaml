@@ -1,0 +1,16 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: main
+nodes_managed: true
+exported_at: "2026-10-20T14:39:20Z"
+modules:
+    "":
+        dir_name: Git Ignore Rules
+        title: Git Ignore Rules
+        scope:
+            - .gitignore
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

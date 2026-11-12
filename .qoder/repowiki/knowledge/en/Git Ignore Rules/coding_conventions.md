@@ -1,0 +1,1 @@
+- Python-generated artifacts (__pycache__, *.pyc, *.pyo, *.pyd) are excluded from version control via a single top-level .gitignore.

@@ -1,0 +1,1 @@
+Single-file configuration at the repository root; no source code or build logic — only git exclusion patterns for __pycache__ and *.py[cod] files.
